@@ -22,17 +22,17 @@ typedef int FileHandle;
 // taken from
 // https://github.com/Microsoft/BLAS-on-flash/blob/master/include/utils.h
 // round up X to the nearest multiple of Y
-#ifndef ROUND_UP
-#define ROUND_UP(X, Y) ((((uint64_t) (X) / (Y)) + ((uint64_t) (X) % (Y) != 0)) * (Y))
+#ifndef ODINANN_ROUND_UP
+#define ODINANN_ROUND_UP(X, Y) ((((uint64_t) (X) / (Y)) + ((uint64_t) (X) % (Y) != 0)) * (Y))
 #endif
 
-#ifndef DIV_ROUND_UP
-#define DIV_ROUND_UP(X, Y) (((uint64_t) (X) / (Y)) + ((uint64_t) (X) % (Y) != 0))
+#ifndef ODINANN_DIV_ROUND_UP
+#define ODINANN_DIV_ROUND_UP(X, Y) (((uint64_t) (X) / (Y)) + ((uint64_t) (X) % (Y) != 0))
 #endif
 
 // round down X to the nearest multiple of Y
-#ifndef ROUND_DOWN
-#define ROUND_DOWN(X, Y) (((uint64_t) (X) / (Y)) * (Y))
+#ifndef ODINANN_ROUND_DOWN
+#define ODINANN_ROUND_DOWN(X, Y) (((uint64_t) (X) / (Y)) * (Y))
 #endif
 
 // alignment tests
@@ -383,7 +383,7 @@ inline int delete_file(const std::string &fileName) {
 
     npts = (unsigned) npts_i32;
     dim = (unsigned) dim_i32;
-    rounded_dim = ROUND_UP(dim, 8);
+    rounded_dim = ODINANN_ROUND_UP(dim, 8);
     LOG(INFO) << "Metadata: #pts = " << npts << ", #dims = " << dim << ", aligned_dim = " << rounded_dim << "...";
     size_t allocSize = npts * rounded_dim * sizeof(T);
     alloc_aligned(((void **) &data), allocSize, 8 * sizeof(T));

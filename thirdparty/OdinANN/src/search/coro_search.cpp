@@ -34,7 +34,7 @@ namespace pipeann {
       T query[kMaxVectorDim];
       _u8 pq_coord_scratch[32768 * 32];
       float pq_dists[32768];
-      T data_buf[ROUND_UP(1024 * kMaxVectorDim, 256)];
+      T data_buf[ODINANN_ROUND_UP(1024 * kMaxVectorDim, 256)];
       float dist_scratch[512];
       _u64 data_buf_idx;
       _u64 sector_idx;

@@ -241,7 +241,7 @@ namespace pipeann {
       LOG(INFO) << ", max node degree: " << max_degree;
     }
 
-    size_per_io = SECTOR_LEN_ODIN * (nnodes_per_sector > 0 ? 1 : DIV_ROUND_UP(max_node_len, SECTOR_LEN_ODIN));
+    size_per_io = SECTOR_LEN_ODIN * (nnodes_per_sector > 0 ? 1 : ODINANN_DIV_ROUND_UP(max_node_len, SECTOR_LEN_ODIN));
     LOG(INFO) << "Size per IO: " << size_per_io;
 
     index_metadata.close();
@@ -272,7 +272,7 @@ namespace pipeann {
     }
 
     this->data_dim = pq_table.get_dim();
-    this->aligned_dim = ROUND_UP(this->data_dim, 8);
+    this->aligned_dim = ODINANN_ROUND_UP(this->data_dim, 8);
 
     LOG(INFO) << "Loaded PQ centroids and in-memory compressed vectors. #points: " << num_points
               << " #dim: " << data_dim << " #aligned_dim: " << aligned_dim << " #chunks: " << n_chunks;

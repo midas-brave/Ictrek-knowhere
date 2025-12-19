@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
   std::cout << "Dataset: #pts = " << npts << ", # dims = " << ndims << std::endl;
 
   _u64 blk_size = 131072;
-  _u64 nblks = ROUND_UP(npts, blk_size) / blk_size;
+  _u64 nblks = ODINANN_ROUND_UP(npts, blk_size) / blk_size;
   std::cout << "# blks: " << nblks << std::endl;
 
   float *read_buf = new float[npts * ndims];

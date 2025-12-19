@@ -112,7 +112,7 @@ namespace pipeann {
       std::vector<IORequest> write_reqs;
       uint64_t id_delta = std::min((uint64_t) SECTORS_PER_MERGE * nnodes_per_sector, n_used_id - wb_id);
       write_reqs.push_back(IORequest(loc_sector_no(wb_id) * SECTOR_LEN_ODIN,
-                                     ROUND_UP(id_delta, nnodes_per_sector) / nnodes_per_sector * size_per_io, b, 0, 0));
+                                     ODINANN_ROUND_UP(id_delta, nnodes_per_sector) / nnodes_per_sector * size_per_io, b, 0, 0));
       reader->write_fd(fd, write_reqs, ctx);
       wb_id += id_delta;
       LOG(INFO) << "Write back " << wb_id << "/" << n_used_id << " IDs.";
@@ -249,7 +249,7 @@ namespace pipeann {
   void SSDIndex<T, TagT>::write_metadata_and_pq(const std::string &in_path_prefix, const std::string &out_path_prefix,
                                                 const uint64_t &new_npoints, const uint64_t &new_medoid,
                                                 std::vector<TagT> *new_tags) {
-    uint64_t file_size = SECTOR_LEN_ODIN + ROUND_UP(new_npoints, nnodes_per_sector) / nnodes_per_sector * SECTOR_LEN_ODIN;
+    uint64_t file_size = SECTOR_LEN_ODIN + ODINANN_ROUND_UP(new_npoints, nnodes_per_sector) / nnodes_per_sector * SECTOR_LEN_ODIN;
     std::vector<uint64_t> output_metadata;
     output_metadata.push_back(new_npoints);
     output_metadata.push_back((uint64_t) this->data_dim);

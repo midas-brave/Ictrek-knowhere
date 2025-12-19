@@ -47,7 +47,7 @@ namespace pipeann {
     }
     // data is stored to _nd * aligned_dim matrix with necessary
     // zero-padding
-    _aligned_dim = ROUND_UP(_dim, 8);
+    _aligned_dim = ODINANN_ROUND_UP(_dim, 8);
 
     if (dynamic_index)
       _num_frozen_pts = 1;
@@ -390,7 +390,7 @@ namespace pipeann {
     constexpr int kSectorLen = 4096;
     char *buf;
     pipeann::alloc_aligned((void **) &buf, kSectorsPerRead * kSectorLen, kSectorLen);
-    uint64_t n_sectors = ROUND_UP(disk_nnodes, nnodes_per_sector) / nnodes_per_sector;
+    uint64_t n_sectors = ODINANN_ROUND_UP(disk_nnodes, nnodes_per_sector) / nnodes_per_sector;
     in.seekg(4096, in.beg);
     for (uint64_t in_sector = 0; in_sector < n_sectors; in_sector += kSectorsPerRead) {
       uint64_t st_sector = in_sector, ed_sector = std::min(in_sector + kSectorsPerRead, n_sectors);
@@ -1385,7 +1385,7 @@ namespace pipeann {
 
     _u64 total_pts = _max_points + _num_frozen_pts;
     unsigned block_size = 1 << 10;
-    _s64 total_blocks = DIV_ROUND_UP(total_pts, block_size);
+    _s64 total_blocks = ODINANN_DIV_ROUND_UP(total_pts, block_size);
 
     auto start = std::chrono::high_resolution_clock::now();
 #pragma omp parallel for schedule(dynamic)

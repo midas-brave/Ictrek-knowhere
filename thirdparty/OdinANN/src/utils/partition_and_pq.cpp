@@ -461,7 +461,7 @@ namespace pipeann {
     std::unique_ptr<float[]> block_data_float = std::make_unique<float[]>(block_size * dim);
     std::unique_ptr<float[]> block_data_tmp = std::make_unique<float[]>(block_size * dim);
 
-    size_t num_blocks = DIV_ROUND_UP(num_points, block_size);
+    size_t num_blocks = ODINANN_DIV_ROUND_UP(num_points, block_size);
 
     for (size_t block = 0; block < num_blocks; block++) {
       size_t start_id = block * block_size;
@@ -569,7 +569,7 @@ namespace pipeann {
     _u32 *block_closest_centers = new _u32[block_size * k_base];
     float *block_data_float;
 
-    size_t num_blocks = DIV_ROUND_UP(num_test, block_size);
+    size_t num_blocks = ODINANN_DIV_ROUND_UP(num_test, block_size);
 
     for (size_t block = 0; block < num_blocks; block++) {
       size_t start_id = block * block_size;
@@ -646,7 +646,7 @@ namespace pipeann {
     std::unique_ptr<T[]> block_data_T = std::make_unique<T[]>(block_size * dim);
     std::unique_ptr<float[]> block_data_float = std::make_unique<float[]>(block_size * dim);
 
-    size_t num_blocks = DIV_ROUND_UP(num_points, block_size);
+    size_t num_blocks = ODINANN_DIV_ROUND_UP(num_points, block_size);
 
     for (size_t block = 0; block < num_blocks; block++) {
       size_t start_id = block * block_size;

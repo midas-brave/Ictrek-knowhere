@@ -127,7 +127,6 @@ file(GLOB_RECURSE SOURCES
 	"src/*/*.cpp"
 	"src/*/*.c"
 )
-
 add_library(odinann STATIC ${SOURCES})
 
 add_executable(search_memory_index tests/search_memory_index.cpp)

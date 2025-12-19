@@ -81,6 +81,12 @@ class OdinANNConfig : public BaseConfig {
 
     // mem_L: number of neighbors cached in memory for faster search
     CFG_INT mem_L;
+    
+    // Data path for building the index (optional in Milvus context)
+    CFG_STRING data_path;
+    
+    // Index prefix for the saved index files (optional in Milvus context)
+    CFG_STRING index_prefix;
 
     KNOHWERE_DECLARE_CONFIG(OdinANNConfig) {
         KNOWHERE_CONFIG_DECLARE_FIELD(max_degree)
@@ -177,6 +183,15 @@ class OdinANNConfig : public BaseConfig {
             .set_default(0)
             .set_range(0, std::numeric_limits<CFG_INT::value_type>::max())
             .for_search();
+        KNOWHERE_CONFIG_DECLARE_FIELD(data_path)
+            .description("data path for building the index")
+            .allow_empty_without_default()
+            .for_train();
+        KNOWHERE_CONFIG_DECLARE_FIELD(index_prefix)
+            .description("index prefix for the saved index files")
+            .allow_empty_without_default()
+            .for_train()
+            .for_deserialize();
     }
 
     Status
@@ -186,6 +201,14 @@ class OdinANNConfig : public BaseConfig {
                 if (!search_list_size.has_value()) {
                     search_list_size = kDefaultSearchListSizeForBuild;
                 }
+                
+                // Validate max_degree if provided
+                if (max_degree.has_value() && (max_degree.value() < 1 || max_degree.value() > 2048)) {
+                    std::string msg = "max_degree(" + std::to_string(max_degree.value()) + 
+                                      ") should be between 1 and 2048";
+                    return HandleError(err_msg, msg, Status::invalid_param_in_json);
+                }
+                
                 pq_code_budget_gb =
                     std::max(pq_code_budget_gb.value(), pq_code_budget_gb_ratio.value() * vec_field_size_gb.value());
                 search_cache_budget_gb = std::max(search_cache_budget_gb.value(),
