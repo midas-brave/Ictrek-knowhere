@@ -253,7 +253,7 @@ typedef struct iocb iocb_t;
 
 void execute_io(void *ctx, int fd, std::vector<IORequest> &reqs, uint64_t n_retries = 0, bool write = false) {
   // break-up requests into chunks of size MAX_EVENTS each
-  uint64_t n_iters = ROUND_UP(reqs.size(), MAX_EVENTS) / MAX_EVENTS;
+  uint64_t n_iters = ODINANN_ROUND_UP(reqs.size(), MAX_EVENTS) / MAX_EVENTS;
   for (uint64_t iter = 0; iter < n_iters; iter++) {
     uint64_t n_ops = std::min((uint64_t) reqs.size() - (iter * MAX_EVENTS), (uint64_t) MAX_EVENTS);
     std::vector<iocb_t *> cbs(n_ops, nullptr);

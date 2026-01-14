@@ -129,7 +129,7 @@ namespace pipeann {
 
     // avoid integer overflow when * SECTOR_LEN_ODIN.
     inline uint64_t loc_sector_no(uint64_t loc) {
-      return 1 + (nnodes_per_sector > 0 ? loc / nnodes_per_sector : loc * DIV_ROUND_UP(max_node_len, SECTOR_LEN_ODIN));
+      return 1 + (nnodes_per_sector > 0 ? loc / nnodes_per_sector : loc * ODINANN_DIV_ROUND_UP(max_node_len, SECTOR_LEN_ODIN));
     }
 
     inline uint64_t sector_to_loc(uint64_t sector_no, uint32_t sector_off) {
@@ -137,7 +137,7 @@ namespace pipeann {
     }
 
     void init_query_buf(QueryBuffer<T> &buf) {
-      _u64 coord_alloc_size = ROUND_UP(MAX_N_CMPS_ODIN * this->aligned_dim, 256);
+      _u64 coord_alloc_size = ODINANN_ROUND_UP(MAX_N_CMPS_ODIN * this->aligned_dim, 256);
       pipeann::alloc_aligned((void **) &buf.coord_scratch, coord_alloc_size, 256);
       pipeann::alloc_aligned((void **) &buf.sector_scratch, MAX_N_SECTOR_READS_ODIN * SECTOR_LEN_ODIN, SECTOR_LEN_ODIN);
       pipeann::alloc_aligned((void **) &buf.aligned_pq_coord_scratch, 32768 * 32 * sizeof(_u8), 256);

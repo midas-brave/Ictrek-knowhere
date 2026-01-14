@@ -28,6 +28,7 @@ set(ODINANN_SOURCES
     thirdparty/OdinANN/src/utils/distance.cpp
     thirdparty/OdinANN/src/index.cpp
     thirdparty/OdinANN/src/utils/aux_utils.cpp
+    thirdparty/OdinANN/src/utils/aux_utils_ext.cpp
     thirdparty/OdinANN/src/utils/linux_aligned_file_reader.cpp
     thirdparty/OdinANN/src/utils/math_utils.cpp
     thirdparty/OdinANN/src/utils/partition_and_pq.cpp
@@ -42,7 +43,6 @@ set(ODINANN_SOURCES
     thirdparty/OdinANN/src/update/dynamic_index.cpp
     thirdparty/OdinANN/src/utils/utils.cpp
 )
-
 # Create OdinANN static library
 add_library(odinann STATIC ${ODINANN_SOURCES})
 

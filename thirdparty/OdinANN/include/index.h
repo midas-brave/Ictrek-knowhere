@@ -21,7 +21,7 @@
 namespace pipeann {
   inline double estimate_ram_usage(size_t size, size_t dim, size_t datasize, size_t degree) {
     double graph_size = (double) size * (double) degree * (double) sizeof(unsigned) * SLACK_FACTOR;
-    size_t data_size = size * ROUND_UP(dim, 8) * datasize;
+    size_t data_size = size * ODINANN_ROUND_UP(dim, 8) * datasize;
     return OVERHEAD_FACTOR * (graph_size + data_size);
   }
 

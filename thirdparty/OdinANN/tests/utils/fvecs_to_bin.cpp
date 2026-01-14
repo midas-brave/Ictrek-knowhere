@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
   std::cout << "Dataset: #pts = " << npts << ", # dims = " << ndims << std::endl;
 
   _u64 blk_size = 131072;
-  _u64 nblks = ROUND_UP(npts, blk_size) / blk_size;
+  _u64 nblks = ODINANN_ROUND_UP(npts, blk_size) / blk_size;
   std::cout << "# blks: " << nblks << std::endl;
   std::ofstream writer(argv[2], std::ios::binary);
   int npts_s32 = (_s32) npts;

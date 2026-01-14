@@ -77,7 +77,7 @@ namespace pipeann {
     LOG(INFO) << "Dataset: #pts = " << npts << ", # dims = " << ndims;
 
     _u64 blk_size = 131072;
-    _u64 nblks = ROUND_UP(npts, blk_size) / blk_size;
+    _u64 nblks = ODINANN_ROUND_UP(npts, blk_size) / blk_size;
     LOG(INFO) << "# blks: " << nblks;
 
     float *read_buf = new float[blk_size * ndims];

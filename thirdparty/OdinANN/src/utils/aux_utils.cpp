@@ -59,7 +59,7 @@ namespace pipeann {
       crash();
     }
 
-    size_t num_blocks = DIV_ROUND_UP(fsize, read_blk_size);
+    size_t num_blocks = ODINANN_DIV_ROUND_UP(fsize, read_blk_size);
     char *dump = new char[read_blk_size];
     for (_u64 i = 0; i < num_blocks; i++) {
       size_t cur_block_size = read_blk_size > fsize - (i * read_blk_size) ? fsize - (i * read_blk_size) : read_blk_size;
@@ -512,14 +512,14 @@ namespace pipeann {
 
     // SECTOR_LEN buffer for each sector
     std::unique_ptr<char[]> sector_buf = std::make_unique<char[]>(SECTOR_LEN_ODIN);
-    std::unique_ptr<char[]> multisector_buf = std::make_unique<char[]>(ROUND_UP(max_node_len, SECTOR_LEN_ODIN));
+    std::unique_ptr<char[]> multisector_buf = std::make_unique<char[]>(ODINANN_ROUND_UP(max_node_len, SECTOR_LEN_ODIN));
     std::unique_ptr<char[]> node_buf = std::make_unique<char[]>(max_node_len);
     unsigned &nnbrs = *(unsigned *) (node_buf.get() + ndims_64 * sizeof(T));
     unsigned *nhood_buf = (unsigned *) (node_buf.get() + (ndims_64 * sizeof(T)) + sizeof(unsigned));
 
     // number of sectors (1 for meta data)
-    _u64 n_sectors = nnodes_per_sector > 0 ? ROUND_UP(npts_64, nnodes_per_sector) / nnodes_per_sector
-                                           : npts_64 * DIV_ROUND_UP(max_node_len, SECTOR_LEN_ODIN);
+    _u64 n_sectors = nnodes_per_sector > 0 ? ODINANN_ROUND_UP(npts_64, nnodes_per_sector) / nnodes_per_sector
+                                           : npts_64 * ODINANN_DIV_ROUND_UP(max_node_len, SECTOR_LEN_ODIN);
     _u64 disk_index_file_size = (n_sectors + 1) * SECTOR_LEN_ODIN;
 
     std::vector<_u64> output_file_meta;
@@ -587,7 +587,7 @@ namespace pipeann {
         diskann_writer.write(sector_buf.get(), SECTOR_LEN_ODIN);
       }
     } else {
-      uint64_t nsectors_per_node = DIV_ROUND_UP(max_node_len, SECTOR_LEN_ODIN);
+      uint64_t nsectors_per_node = ODINANN_DIV_ROUND_UP(max_node_len, SECTOR_LEN_ODIN);
       for (uint64_t i = 0; i < npts_64; i++) {
         if ((i * nsectors_per_node) % 100000 == 0) {
           LOG(INFO) << "Sector #" << i * nsectors_per_node << "written";
@@ -997,4 +997,135 @@ namespace pipeann {
                                                           bool, char const *);
   template bool build_disk_index<knowhere::fp16, unsigned int>(char const *, char const *, char const *, pipeann::Metric,
                                                           bool, char const *);
+
+  // ============================================================================
+  // IMPLEMENTATION 1: Config-based wrapper (Phase 1)
+  // ============================================================================
+  
+  template<typename T, typename TagT>
+  bool build_disk_index_from_config(const DiskIndexBuildConfig& config) {
+      std::string error_msg;
+      if (!config.validate(error_msg)) {
+          std::cerr << "Config validation failed: " << error_msg << std::endl;
+          return false;
+      }
+      
+      // Map new config to legacy build_disk_index_py parameters
+      // Note: M parameter (formerly 3rd uint32_t) mapped to 0 as it's not used
+      return build_disk_index_py<T, TagT>(
+          config.data_path.c_str(),
+          config.index_prefix.c_str(),
+          config.max_degree,              // R
+          config.search_list_size,        // L
+          0,                              // M (not used in modern pipeline)
+          config.num_threads,
+          config.pq_dims,                 // PQ_bytes
+          config.metric_type,
+          config.single_file_index,
+          config.tag_file
+      );
+  }
+  
+  // ============================================================================
+  // IMPLEMENTATION 2: Result-based wrapper with metrics (Phase 2)
+  // ============================================================================
+  
+  template<typename T, typename TagT>
+  BuildResult build_disk_index_with_result(const DiskIndexBuildConfig& config) {
+      BuildResult result;
+      
+      // Validate input config
+      if (!config.validate(result.error_message)) {
+          result.success = false;
+          return result;
+      }
+      
+      auto start_time = std::chrono::high_resolution_clock::now();
+      
+      try {
+          // Call the underlying build function
+          bool build_success = build_disk_index_py<T, TagT>(
+              config.data_path.c_str(),
+              config.index_prefix.c_str(),
+              config.max_degree,
+              config.search_list_size,
+              0,
+              config.num_threads,
+              config.pq_dims,
+              config.metric_type,
+              config.single_file_index,
+              config.tag_file
+          );
+          
+          if (!build_success) {
+              result.success = false;
+              result.error_message = "build_disk_index_py returned false";
+              return result;
+          }
+          
+          // Try to read metadata from built index
+          // This is implementation-specific; adjust based on OdinANN's format
+          // For now, we read from the data file to get num_points and dimension
+          
+          // TODO: Read index metadata file to populate:
+          // - result.num_points
+          // - result.dimension
+          // - result.index_size_mb (sum of all generated files)
+          
+          // Placeholder: These should be read from actual index metadata
+          result.num_points = 0;  // TODO: extract from index
+          result.dimension = 0;   // TODO: extract from index
+          
+          // Calculate index files size
+          std::string index_file = config.index_prefix;
+          if (config.single_file_index) {
+              index_file += ".odinann";
+          } else {
+              index_file += "_mem.index";
+          }
+          
+          // Check if file exists and get size
+          struct stat st;
+          if (stat(index_file.c_str(), &st) == 0) {
+              result.index_size_mb = (double)st.st_size / (1024 * 1024);
+          }
+          
+          result.index_file_path = index_file;
+          result.success = true;
+          
+      } catch (const std::exception& e) {
+          result.success = false;
+          result.error_message = std::string("Exception during build: ") + e.what();
+      }
+      
+      auto end_time = std::chrono::high_resolution_clock::now();
+      result.build_time_seconds = 
+          std::chrono::duration<double>(end_time - start_time).count();
+      
+      return result;
+  }
+  
+  // ============================================================================
+  // EXPLICIT TEMPLATE INSTANTIATIONS
+  // ============================================================================
+  // Add these for commonly used types to avoid linker issues
+  
+  template bool build_disk_index_from_config<float>(const DiskIndexBuildConfig& config);
+  template bool build_disk_index_from_config<knowhere::fp16>(const DiskIndexBuildConfig& config);
+  template bool build_disk_index_from_config<knowhere::bf16>(const DiskIndexBuildConfig& config);
+  
+  template BuildResult build_disk_index_with_result<float>(const DiskIndexBuildConfig& config);
+  template BuildResult build_disk_index_with_result<knowhere::fp16>(const DiskIndexBuildConfig& config);
+  template BuildResult build_disk_index_with_result<knowhere::bf16>(const DiskIndexBuildConfig& config);
+  
+  // Additional instantiations for two-template-parameter calls used by knowhere
+  // These were causing duplicate instantiation errors, so they are commented out
+  // template bool build_disk_index_from_config<float, uint32_t>(const DiskIndexBuildConfig& config);
+  // template bool build_disk_index_from_config<knowhere::fp16, uint32_t>(const DiskIndexBuildConfig& config);
+  // template bool build_disk_index_from_config<knowhere::bf16, uint32_t>(const DiskIndexBuildConfig& config);
+  
+  // template BuildResult build_disk_index_with_result<float, uint32_t>(const DiskIndexBuildConfig& config);
+  // template BuildResult build_disk_index_with_result<knowhere::fp16, uint32_t>(const DiskIndexBuildConfig& config);
+  // template BuildResult build_disk_index_with_result<knowhere::bf16, uint32_t>(const DiskIndexBuildConfig& config);
+  
 };  // namespace pipeann
